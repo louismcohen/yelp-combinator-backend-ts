@@ -6,10 +6,20 @@ import { createError } from '../utils/asyncHandler';
 import type { Collection } from '../types/schemas';
 
 export const collectionService = {
-  async checkForUpdates(collections: string[]) {
+  async checkForUpdates(collectionIds?: string[]) {
     const updateResults = [];
 
-    for (const collectionId of collections) {
+    let yelpCollectionIds: string[] = [];
+    if (!collectionIds) {
+      const collections = await CollectionModel.find();
+      yelpCollectionIds = collections.map(
+        (collection) => collection.yelpCollectionId,
+      );
+    } else {
+      yelpCollectionIds = collectionIds;
+    }
+
+    for (const collectionId of yelpCollectionIds) {
       const existingCollection = await CollectionModel.findOne({
         yelpCollectionId: collectionId,
       });
@@ -107,7 +117,6 @@ export const collectionService = {
   },
 
   async syncCollections(collectionIds?: string[]) {
-    console.log(collectionIds);
     const results = [];
 
     let yelpCollectionIds: string[] = [];
@@ -119,8 +128,6 @@ export const collectionService = {
     } else {
       yelpCollectionIds = collectionIds;
     }
-
-    console.log({ yelpCollectionIds });
 
     for (const collectionId of yelpCollectionIds) {
       try {
