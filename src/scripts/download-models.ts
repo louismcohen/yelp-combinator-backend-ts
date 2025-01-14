@@ -4,7 +4,7 @@ import path from 'path';
 
 env.cacheDir = path.join(process.cwd(), 'cache/models');
 
-export async function downloadModels() {
+export const downloadModels = async () => {
   console.log('Downloading models...');
   try {
     await pipeline(
@@ -19,6 +19,6 @@ export async function downloadModels() {
     console.error('Failed to download models:', error);
     process.exit(1);
   }
-}
+};
 
 downloadModels();

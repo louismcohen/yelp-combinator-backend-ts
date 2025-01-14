@@ -13,6 +13,7 @@ export const BusinessSchema = z.object({
     type: z.literal('Point'),
     coordinates: z.array(z.number(), z.number()),
   }),
+  embedding: z.array(z.number().finite()).length(384).optional(),
   yelpData: z
     .object({
       name: z.string(),

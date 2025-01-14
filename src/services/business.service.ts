@@ -1,6 +1,7 @@
 import { BusinessModel } from '../models/Business';
 import { yelpAPIService } from './yelpAPI.service';
 import type { Business } from '../types/schemas';
+import { createEmbeddingForBusiness } from './embedding.service';
 
 export const businessService = {
   async getAll() {
@@ -20,19 +21,25 @@ export const businessService = {
 
     const yelpData: Business['yelpData'] = yelpDataResponse.data;
 
+    const business = {
+      ...businessData,
+      geoPoint: {
+        type: 'Point' as const,
+        coordinates: [
+          yelpData?.coordinates.longitude,
+          yelpData?.coordinates.latitude,
+        ],
+      },
+      lastUpdated: new Date(),
+    };
+
+    const embedding = await createEmbeddingForBusiness(business);
+
     const result = BusinessModel.findOneAndUpdate(
       { alias: businessData.alias },
       {
-        ...businessData,
-        geoPoint: {
-          type: 'Point',
-          coordinates: [
-            yelpData?.coordinates.longitude,
-            yelpData?.coordinates.latitude,
-          ],
-        },
-        yelpData,
-        lastUpdated: new Date(),
+        ...business,
+        embedding,
       },
       {
         new: true,

@@ -21,6 +21,18 @@ const businessSchema = new mongoose.Schema(
       },
       coordinates: [Number],
     },
+    embedding: {
+      type: [Number], // Store as array of numbers
+      validate: {
+        validator: (v: number[]) => {
+          // Validate embedding dimension - adjust 384 to match your model's output dimension
+          return v.length === 384;
+        },
+        message: 'Embedding must have exactly 384 dimensions',
+      },
+      index: true,
+      sparse: true,
+    },
     yelpData: {
       name: String,
       image_url: String,
