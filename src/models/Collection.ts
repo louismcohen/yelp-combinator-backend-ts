@@ -7,7 +7,7 @@ const collectionSchema = new mongoose.Schema(
     title: { type: String, required: true },
     itemCount: { type: Number, required: true },
     lastUpdated: { type: Date, required: true, index: true },
-    businesses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Business' }],
+    businesses: [{ type: String, ref: 'Business' }],
   },
   { timestamps: true },
 );

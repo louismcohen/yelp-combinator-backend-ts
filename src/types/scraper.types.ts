@@ -4,10 +4,8 @@ import { z } from 'zod';
 export const ScrapedBusinessSchema = z.object({
   alias: z.string(),
   note: z.string().optional(),
-  url: z.string().url(),
   addedIndex: z.number(),
   collectionId: z.string().optional(),
-  collectionTitle: z.string().optional(),
 });
 
 export const ScrapedCollectionSchema = z.object({

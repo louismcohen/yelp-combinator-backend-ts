@@ -18,16 +18,13 @@ const yelpAxiosInstance = axios.create({
 
 export const yelpAPIService = {
   getBusinessDetails: async (businessId: string) => {
+    const encodedBusinessId = encodeURIComponent(businessId);
     try {
-      const encodedBusinessId = encodeURIComponent(businessId);
       return await limiter.schedule(() =>
         yelpAxiosInstance.get(`${encodedBusinessId}`),
       );
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error('Error response:', error.response?.data);
-        console.error('Status code:', error.response?.status);
-        console.error('Headers:', error.response?.headers);
         throw createError(
           error.response?.status || 500,
           `Yelp API Error: ${error.response?.data.error.code}, ${error.response?.data.error.description}`,

@@ -20,7 +20,7 @@ export const businessService = {
 
     const yelpData: Business['yelpData'] = yelpDataResponse.data;
 
-    return BusinessModel.findOneAndUpdate(
+    const result = BusinessModel.findOneAndUpdate(
       { alias: businessData.alias },
       {
         ...businessData,
@@ -40,6 +40,8 @@ export const businessService = {
         setDefaultsOnInsert: true,
       },
     );
+    console.log(`Upserted business ${businessData.alias}`);
+    return result;
   },
 
   async bulkUpsertBusinesses(businesses: Partial<Business>[]) {

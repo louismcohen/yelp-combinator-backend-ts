@@ -92,9 +92,10 @@ export const scraperService = {
           }
         });
 
-        if (offset + offsetStep < itemCount) {
-          await new Promise((resolve) => setTimeout(resolve, 300));
-        }
+        // if (offset + offsetStep < itemCount) {
+        //   await new Promise((resolve) => setTimeout(resolve, 300));
+        // }
+        console.log(`Scraped ${businesses.length} of ${itemCount} businesses`);
       }
 
       return { success: true, data: businesses };
@@ -110,8 +111,9 @@ export const scraperService = {
     $element: cheerio.Cheerio,
     addedIndex: number,
   ): ScrapedBusiness {
-    const bizUrl = $element.find('.biz-name').attr('href') || '';
-    const bizAlias = bizUrl.split('?')[0].slice(5);
+    const encodedBizUrl = $element.find('.biz-name').attr('href') || '';
+    const bizUrl = decodeURIComponent(encodedBizUrl);
+    const bizAlias = decodeURIComponent(bizUrl.split('?')[0].slice(5));
 
     if (!bizAlias) {
       throw new Error('Failed to parse business data');
@@ -120,7 +122,6 @@ export const scraperService = {
     return {
       alias: bizAlias,
       note: $element.find('.js-info-content').text().trim(),
-      url: bizUrl,
       addedIndex,
     };
   },

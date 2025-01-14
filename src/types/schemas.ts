@@ -9,7 +9,6 @@ export const BusinessSchema = z.object({
   lastUpdated: z.date(),
   visited: z.boolean().default(false),
   collectionId: z.string(),
-  collectionTitle: z.string(),
   geoPoint: z.object({
     type: z.literal('Point'),
     coordinates: z.array(z.number(), z.number()),

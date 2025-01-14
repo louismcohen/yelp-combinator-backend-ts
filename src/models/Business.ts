@@ -7,10 +7,8 @@ const businessSchema = new mongoose.Schema(
     alias: { type: String, required: true, unique: true },
     note: String,
     addedIndex: { type: Number, required: true },
-    url: { type: String, required: true },
     lastUpdated: { type: Date, required: true, index: true },
     collectionId: { type: String, required: true, index: true },
-    collectionTitle: { type: String, required: true },
     visited: {
       type: Boolean,
       default: false,

@@ -58,7 +58,6 @@ export const collectionService = {
           return await businessService.upsertBusiness({
             ...business,
             collectionId: scrapedCollection.yelpCollectionId,
-            collectionTitle: scrapedCollection.title,
           });
         } catch (error) {
           console.error(`Failed to upsert business ${business.alias}:`, error);
@@ -173,6 +172,10 @@ export const collectionService = {
       );
     }
 
+    console.log(
+      `Collection ${collectionId} successfully scraped.\nNow scraping ${scrapeResult.data.itemCount} businesses`,
+    );
+
     // Then scrape all businesses
     const businessesResult = await scraperService.scrapeCollectionBusinesses(
       collectionId,
@@ -185,13 +188,16 @@ export const collectionService = {
       );
     }
 
+    console.log(
+      `Successfully scraped ${businessesResult.data.length} businesses.`,
+    );
+
     // Process and store businesses
     const businessPromises = businessesResult.data.map(async (business) => {
       try {
         return await businessService.upsertBusiness({
           ...business,
           collectionId: scrapeResult.data.yelpCollectionId,
-          collectionTitle: scrapeResult.data.title,
         });
       } catch (error) {
         console.error(`Failed to upsert business ${business.alias}:`, error);
