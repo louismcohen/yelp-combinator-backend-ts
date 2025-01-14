@@ -1,0 +1,24 @@
+// src/scripts/download-models.ts
+import { pipeline, env } from '@huggingface/transformers';
+import path from 'path';
+
+env.cacheDir = path.join(process.cwd(), 'cache/models');
+
+export async function downloadModels() {
+  console.log('Downloading models...');
+  try {
+    await pipeline(
+      'feature-extraction',
+      'sentence-transformers/all-MiniLM-L6-v2',
+      {
+        revision: 'main',
+      },
+    );
+    console.log('Models downloaded successfully!');
+  } catch (error) {
+    console.error('Failed to download models:', error);
+    process.exit(1);
+  }
+}
+
+downloadModels();

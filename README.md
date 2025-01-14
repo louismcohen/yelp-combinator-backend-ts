@@ -8,6 +8,19 @@ API for managing Yelp collections and businesses.
 2. Copy `.env.example` to `.env` and fill in your values
 3. Run development server: `npm run dev`
 
+### Model Cache
+
+This project uses HuggingFace Transformers.js for generating embeddings. The model files are cached locally for better performance.
+
+First-time setup:
+
+```bash
+# Create cache directory
+mkdir -p cache/models
+
+# Download models (this may take a few minutes)
+npm run download-models
+
 ## Available Scripts
 
 - `npm run dev`: Start development server
@@ -17,3 +30,5 @@ API for managing Yelp collections and businesses.
 ## API Documentation
 
 Available at `/api-docs` when server is running.
+
+```
