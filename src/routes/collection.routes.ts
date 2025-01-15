@@ -33,7 +33,7 @@ router.post('/sync', collectionController.syncCollections);
  *     tags: [Collections]
  *     summary: Check which collections need updates
  *     requestBody:
- *       required: true
+ *       required: false
  *       content:
  *         application/json:
  *           schema:

@@ -8,6 +8,7 @@ import { collectionRoutes } from './routes/collection.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { env } from './config/env';
 import { embeddingRoutes } from './routes/embedding.routes';
+import { semanticRoutes } from './routes/semantic.routes';
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use('/api/businesses', businessRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/embeddings', embeddingRoutes);
+app.use('/api/semantic', semanticRoutes);
 
 // Error handling
 app.use(errorHandler);

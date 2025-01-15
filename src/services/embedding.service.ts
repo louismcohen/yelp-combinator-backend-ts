@@ -1,7 +1,7 @@
 // embeddingService.ts
 import * as fs from 'fs';
 import * as path from 'path';
-import { pipeline, Tensor } from '@huggingface/transformers';
+import { pipeline } from '@huggingface/transformers';
 import { downloadModels } from '../scripts/download-models';
 
 const MODEL_ID = 'sentence-transformers/all-MiniLM-L6-v2';
@@ -29,6 +29,7 @@ const loadEmbeddingModel = async () => {
 };
 
 interface BusinessForEmbedding {
+  alias: string;
   visited?: boolean;
   note?: string;
   yelpData?: {
@@ -48,27 +49,22 @@ interface BusinessForEmbedding {
   };
 }
 
+interface WeightedField {
+  value: string | undefined | null;
+  weight: number;
+  preprocessor?: (value: string) => string;
+}
+
 // Generate text embedding for a business
 export const createEmbeddingForBusiness = async (
   business: BusinessForEmbedding,
 ): Promise<number[]> => {
-  const textToEmbed = [
-    business.yelpData?.name,
-    business.yelpData?.categories?.map((c) => c.title).join(', '),
-    business?.note,
-    `${business.yelpData?.location?.city}, ${business.yelpData?.location?.state}`,
-    business.yelpData?.categories?.map((c) => c.alias).join(' '),
-    // Status indicators
-    business.visited ? 'visited' : 'not visited',
-    business.yelpData?.is_claimed ? 'claimed business' : 'unclaimed business',
-    business.yelpData?.is_closed && 'permanently closed',
-    // Rating and review context
-    `rating ${business.yelpData?.rating} stars`,
-    `${business.yelpData?.review_count} reviews`,
-  ]
-    .filter(Boolean)
-    .join(' | ')
-    .toLowerCase();
+  const textToEmbed = getBusinessEmbeddingText(business);
+
+  console.log({
+    createEmbeddingForBusiness: business.alias,
+    text: textToEmbed,
+  });
 
   return generateEmbedding(textToEmbed);
 };
@@ -80,16 +76,74 @@ export const generateEmbedding = async (textToEmbed: string) => {
     // Generate the embedding
     const embedding = await embedder(textToEmbed);
 
-    if (embedding instanceof Tensor) {
-      return Array.from(embedding.flatten());
-    }
+    // const multiDimEmbedding: number[] = embedding instanceof Tensor ? Array.from(embedding.flatten()) : Array.from(
+    //   Array.isArray(embedding) ? (embedding as number[][]).flat() : embedding,
+    // );
 
-    // If it's an array, flatten it and ensure it's an array of numbers
-    return Array.from(
-      Array.isArray(embedding) ? (embedding as number[][]).flat() : embedding,
-    );
+    const pooledEmbedding = embedding.mean(1);
+    return Array.from(pooledEmbedding.flatten());
   } catch (error) {
     console.error('Error generating embedding:', error);
     throw error;
   }
+};
+
+const createWeightedEmbeddingText = (fields: WeightedField[]): string => {
+  return fields
+    .flatMap(({ value, weight, preprocessor = (v) => v }) =>
+      value ? Array(weight).fill(preprocessor(value)) : [],
+    )
+    .join(' | ')
+    .toLowerCase();
+};
+
+const getBusinessEmbeddingText = (business: BusinessForEmbedding) => {
+  const fields: WeightedField[] = [
+    // High importance (weight: 3)
+    {
+      value: business.yelpData?.name,
+      weight: 3,
+    },
+    {
+      value: business.yelpData?.categories?.map((c) => c.title).join(', '),
+      weight: 3,
+    },
+    {
+      value: business.note,
+      weight: 3,
+    },
+
+    // Medium importance (weight: 2)
+    {
+      value:
+        (business.yelpData?.rating ?? 0) >= 4
+          ? 'highly rated restaurant'
+          : undefined,
+      weight: 2,
+    },
+    {
+      value: business.visited ? 'visited' : 'not visited',
+      weight: 2,
+    },
+    {
+      value: business.yelpData?.is_claimed ? 'claimed' : 'unclaimed',
+      weight: 2,
+    },
+
+    // Standard importance (weight: 1)
+    {
+      value: `${business.yelpData?.location?.city}, ${business.yelpData?.location?.state}`,
+      weight: 1,
+    },
+    {
+      value: `rating ${business.yelpData?.rating} stars with ${business.yelpData?.review_count} reviews`,
+      weight: 1,
+    },
+    {
+      value: business.yelpData?.categories?.map((c) => c.alias).join(' '),
+      weight: 1,
+    },
+  ];
+
+  return createWeightedEmbeddingText(fields);
 };

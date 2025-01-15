@@ -9,6 +9,10 @@ const UpdatesQuerySchema = z.object({
   lastSync: z.string().transform((val) => new Date(val)),
 });
 
+const UpdateEmbeddingsSchema = z.object({
+  businessAliases: z.array(z.string()).optional(),
+});
+
 export const businessController = {
   getAll: asyncHandler(async (_req: Request, res: Response) => {
     const businesses = await businessService.getAll();
@@ -34,5 +38,11 @@ export const businessController = {
     }
 
     res.json(business);
+  }),
+  updateEmbeddings: asyncHandler(async (req: Request, res: Response) => {
+    const { businessAliases } = UpdateEmbeddingsSchema.parse(req.body);
+    const updatedBusinesses =
+      await businessService.updateEmbeddings(businessAliases);
+    res.json(updatedBusinesses);
   }),
 };

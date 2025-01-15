@@ -11,10 +11,7 @@ export const collectionService = {
 
     let yelpCollectionIds: string[] = [];
     if (!collectionIds) {
-      const collections = await CollectionModel.find();
-      yelpCollectionIds = collections.map(
-        (collection) => collection.yelpCollectionId,
-      );
+      yelpCollectionIds = await CollectionModel.distinct('yelpCollectionId');
     } else {
       yelpCollectionIds = collectionIds;
     }
@@ -121,10 +118,7 @@ export const collectionService = {
 
     let yelpCollectionIds: string[] = [];
     if (!collectionIds) {
-      const collections = await CollectionModel.find();
-      yelpCollectionIds = collections.map(
-        (collection) => collection.yelpCollectionId,
-      );
+      yelpCollectionIds = await CollectionModel.distinct('yelpCollectionId');
     } else {
       yelpCollectionIds = collectionIds;
     }

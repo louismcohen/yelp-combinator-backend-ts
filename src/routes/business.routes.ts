@@ -67,4 +67,31 @@ router.get('/updates', businessController.getUpdates);
  */
 router.patch('/:id/visited', businessController.updateVisited);
 
+/**
+ * @openapi
+ * /api/businesses/{id}/visited:
+ *   patch:
+ *     tags: [Businesses]
+ *     summary: Update embeddings for some or all businesses
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               businessAliases:
+ *                 type: array
+ *                 items:
+ *                    type: string
+ *     responses:
+ *       200:
+ *         description: Updated business(es)
+ *       400:
+ *         description: Invalid request body
+ *       404:
+ *         description: Business not found
+ */
+router.patch('/updateEmbeddings', businessController.updateEmbeddings);
+
 export const businessRoutes = router;
