@@ -9,8 +9,11 @@ const envSchema = z.object({
     .default('development'),
   PORT: z.string().default('3000'),
   MONGODB_URI: z.string(),
+  MONGODB_STD_URI: z.string(),
   YELP_API_KEY: z.string(),
   ANTHROPIC_API_KEY: z.string(),
+  POSTMAN_API_KEY: z.string(),
+  POSTMAN_COLLECTION_UID: z.string(),
 });
 
 export const env = envSchema.parse(process.env);

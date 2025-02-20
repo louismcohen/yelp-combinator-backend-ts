@@ -58,9 +58,9 @@ export const businessService = {
         setDefaultsOnInsert: true,
       },
     );
-    console.log(
-      `Upserted business ${businessData.alias}. Embeddings generated: ${generateEmbedding}`,
-    );
+    // console.log(
+    //   `Upserted business ${businessData.alias}. Embeddings generated: ${generateEmbedding}`,
+    // );
     return result;
   },
 

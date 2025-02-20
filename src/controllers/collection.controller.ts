@@ -55,4 +55,15 @@ export const collectionController = {
 
     res.status(201).json(result);
   }),
+
+  checkAndSyncUpdates: asyncHandler(async (req: Request, res: Response) => {
+    const { collectionIds, generateEmbeddings } = CollectionIdsSchema.parse(
+      req.body,
+    );
+    const results = await collectionService.checkAndSyncUpdates(
+      collectionIds,
+      generateEmbeddings,
+    );
+    res.json(results);
+  }),
 };

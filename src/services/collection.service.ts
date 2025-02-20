@@ -16,6 +16,11 @@ export const collectionService = {
       yelpCollectionIds = collectionIds;
     }
 
+    console.log(
+      `Checking for updates for ${yelpCollectionIds?.length} collections:`,
+      yelpCollectionIds,
+    );
+
     for (const collectionId of yelpCollectionIds) {
       const existingCollection = await CollectionModel.findOne({
         yelpCollectionId: collectionId,
@@ -24,6 +29,10 @@ export const collectionService = {
       const scrapedResult = await scraperService.scrapeCollection(collectionId);
 
       if (!scrapedResult.success) {
+        console.log(
+          `Error scraping collection ${collectionId}:`,
+          scrapedResult.error,
+        );
         updateResults.push({
           collectionId,
           needsUpdate: false,
@@ -32,11 +41,16 @@ export const collectionService = {
         continue;
       }
 
+      const needsUpdate =
+        !existingCollection ||
+        scrapedResult.data.lastUpdated > existingCollection.lastUpdated;
+
+      console.log(
+        `Collection ${collectionId} scraped successfully. Needs update: ${needsUpdate ? 'YES' : 'NO'}`,
+      );
       updateResults.push({
         collectionId,
-        needsUpdate:
-          !existingCollection ||
-          scrapedResult.data.lastUpdated > existingCollection.lastUpdated,
+        needsUpdate,
         existing: existingCollection?.lastUpdated,
         scraped: scrapedResult.data.lastUpdated,
       });
@@ -200,20 +214,28 @@ export const collectionService = {
     );
 
     // Process and store businesses
-    const businessPromises = businessesResult.data.map(async (business) => {
-      try {
-        return await businessService.upsertBusiness(
-          {
-            ...business,
-            collectionId: scrapeResult.data.yelpCollectionId,
-          },
-          generateEmbedding,
-        );
-      } catch (error) {
-        console.error(`Failed to upsert business ${business.alias}:`, error);
-        return null;
-      }
-    });
+    const businessPromises = businessesResult.data.map(
+      async (business, index) => {
+        try {
+          const upserted = await businessService.upsertBusiness(
+            {
+              ...business,
+              collectionId: scrapeResult.data.yelpCollectionId,
+            },
+            generateEmbedding,
+          );
+
+          console.log(
+            `Inserted business ${index + 1} of ${businessesResult.data.length}: ${upserted.alias}. Embeddings generated: ${generateEmbedding}`,
+          );
+
+          return upserted;
+        } catch (error) {
+          console.error(`Failed to upsert business ${business.alias}:`, error);
+          return null;
+        }
+      },
+    );
 
     const businesses = (await Promise.all(businessPromises)).filter(
       (b): b is NonNullable<typeof b> => b !== null,
@@ -230,5 +252,25 @@ export const collectionService = {
       businessesProcessed: businesses.length,
       totalItems: scrapeResult.data.itemCount,
     };
+  },
+
+  async checkAndSyncUpdates(
+    collectionIds?: string[],
+    generateEmbeddings = false,
+  ) {
+    const updateResults = await this.checkForUpdates(collectionIds);
+    const collectionsToUpdate = updateResults
+      .filter((result) => result.needsUpdate)
+      .map((result) => result.collectionId);
+
+    if (collectionsToUpdate.length > 0) {
+      const syncResults = await this.syncCollections(
+        collectionsToUpdate,
+        generateEmbeddings,
+      );
+      return syncResults;
+    }
+
+    return [];
   },
 };

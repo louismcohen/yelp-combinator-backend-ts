@@ -51,6 +51,34 @@ router.post('/check-updates', collectionController.checkUpdates);
 
 /**
  * @openapi
+ * /api/collections/check-and-sync-updates:
+ *   post:
+ *     tags: [Collections]
+ *     summary: Check for updates and sync collections if needed
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               collectionIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               generateEmbeddings:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Sync results for updated collections
+ */
+router.post(
+  '/check-and-sync-updates',
+  collectionController.checkAndSyncUpdates,
+);
+
+/**
+ * @openapi
  * /api/collections/{id}:
  *   get:
  *     tags: [Collections]

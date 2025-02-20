@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import swaggerJsdoc from 'swagger-jsdoc';
@@ -12,6 +12,8 @@ import { semanticRoutes } from './routes/semantic.routes';
 import { searchRoutes } from './routes/search.routes';
 import path from 'path';
 import { writeFileSync } from 'fs';
+import openapiToPostman, { ConvertResult } from 'openapi-to-postmanv2';
+import axios from 'axios';
 
 const app = express();
 
@@ -43,7 +45,8 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 // Serve Swagger JSON file
-app.get('/api-docs/swagger.json', (_req, res) => {
+const swaggerJsonPath = path.join(__dirname, 'swagger.json');
+app.get('/api-docs/swagger.json', (_req: Request, res: Response) => {
   res.sendFile(swaggerJsonPath);
 });
 
@@ -56,8 +59,42 @@ app.use(
 );
 
 // Save Swagger JSON to a file dynamically
-const swaggerJsonPath = path.join(__dirname, 'swagger.json');
 writeFileSync(swaggerJsonPath, JSON.stringify(swaggerDocs, null, 2));
+
+// Function to update Postman collection
+const updatePostmanCollection = async (postmanCollection: object) => {
+  try {
+    await axios.put(
+      `https://api.getpostman.com/collections/${env.POSTMAN_COLLECTION_UID}`,
+      { collection: postmanCollection },
+      {
+        headers: {
+          'X-Api-Key': env.POSTMAN_API_KEY,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    console.log('Postman collection updated successfully');
+  } catch (error) {
+    console.error('Error updating Postman collection:', error);
+  }
+};
+
+// Convert OpenAPI (Swagger) JSON to Postman Collection
+openapiToPostman.convert(
+  { type: 'string', data: JSON.stringify(swaggerDocs) },
+  {},
+  async (err: unknown, conversionResult: ConvertResult) => {
+    if (!conversionResult.result) {
+      console.error(
+        'Error converting OpenAPI to Postman:',
+        conversionResult.reason,
+      );
+    } else {
+      await updatePostmanCollection(conversionResult.output[0].data);
+    }
+  },
+);
 
 // Routes
 app.use('/api/businesses', businessRoutes);
