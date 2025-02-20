@@ -20,7 +20,9 @@ const loadEmbeddingModel = async () => {
   }
 
   try {
-    const embedder = await pipeline('feature-extraction', MODEL_ID);
+    const embedder = await pipeline('feature-extraction', MODEL_ID, {
+      dtype: 'auto',
+    });
     return embedder;
   } catch (error) {
     console.error('Error loading model:', error);

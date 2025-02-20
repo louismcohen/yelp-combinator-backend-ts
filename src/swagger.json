@@ -1,0 +1,323 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Yelp Combinator API",
+    "version": "1.0.0",
+    "description": "API for managing Yelp collections and businesses"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/api/businesses/all": {
+      "get": {
+        "tags": [
+          "Businesses"
+        ],
+        "summary": "Get all businesses for initial map load",
+        "responses": {
+          "200": {
+            "description": "List of all businesses"
+          }
+        }
+      }
+    },
+    "/api/businesses/updates": {
+      "get": {
+        "tags": [
+          "Businesses"
+        ],
+        "summary": "Get business updates since last sync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "lastSync",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of updated businesses"
+          }
+        }
+      }
+    },
+    "/api/businesses/{id}/visited": {
+      "patch": {
+        "tags": [
+          "Businesses"
+        ],
+        "summary": "Update embeddings for some or all businesses",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "visited": {
+                    "type": "boolean"
+                  },
+                  "businessAliases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "visited"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated business(es)"
+          },
+          "400": {
+            "description": "Invalid request body"
+          },
+          "404": {
+            "description": "Business not found"
+          }
+        }
+      }
+    },
+    "/api/collections/sync": {
+      "post": {
+        "tags": [
+          "Collections"
+        ],
+        "summary": "Sync multiple collections from Yelp. Leave request body blank to sync all",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "collectionIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sync results for each collection"
+          }
+        }
+      }
+    },
+    "/api/collections/check-updates": {
+      "post": {
+        "tags": [
+          "Collections"
+        ],
+        "summary": "Check which collections need updates",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "collectionIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of collections needing updates"
+          }
+        }
+      }
+    },
+    "/api/collections/{id}": {
+      "get": {
+        "tags": [
+          "Collections"
+        ],
+        "summary": "Get a single collection with its businesses",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Collection details with businesses"
+          }
+        }
+      }
+    },
+    "/api/collections": {
+      "post": {
+        "tags": [
+          "Collections"
+        ],
+        "summary": "Add a new collection by ID and perform initial sync",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "collectionId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "collectionId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Collection added and synced successfully"
+          },
+          "400": {
+            "description": "Invalid collection ID or scraping failed"
+          },
+          "409": {
+            "description": "Collection already exists"
+          }
+        }
+      }
+    },
+    "/api/embeddings": {
+      "post": {
+        "tags": [
+          "Embeddings"
+        ],
+        "summary": "Generate embedding for provided text",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Embedding vector generated"
+          }
+        }
+      }
+    },
+    "/api/search": {
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search businesses using natural language",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "query"
+                ],
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  },
+                  "viewport": {
+                    "type": "object"
+                  },
+                  "userLocation": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Search results"
+          }
+        }
+      }
+    },
+    "/api/semantic/businesses": {
+      "post": {
+        "tags": [
+          "SemanticSearch"
+        ],
+        "summary": "Perform a semantic search across businesses",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Search results"
+          }
+        }
+      }
+    }
+  },
+  "components": {},
+  "tags": []
+}

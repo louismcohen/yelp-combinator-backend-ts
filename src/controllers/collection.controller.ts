@@ -5,16 +5,23 @@ import { asyncHandler, createError } from '../utils/asyncHandler';
 
 const CollectionIdsSchema = z.object({
   collectionIds: z.array(z.string()).optional(),
+  generateEmbeddings: z.boolean().optional(),
 });
 
 const AddCollectionSchema = z.object({
   collectionId: z.string(),
+  generateEmbedding: z.boolean().optional(),
 });
 
 export const collectionController = {
   syncCollections: asyncHandler(async (req: Request, res: Response) => {
-    const { collectionIds } = CollectionIdsSchema.parse(req.body);
-    const results = await collectionService.syncCollections(collectionIds);
+    const { collectionIds, generateEmbeddings } = CollectionIdsSchema.parse(
+      req.body,
+    );
+    const results = await collectionService.syncCollections(
+      collectionIds,
+      generateEmbeddings,
+    );
     res.json(results);
   }),
 
@@ -30,7 +37,9 @@ export const collectionController = {
   }),
 
   addCollection: asyncHandler(async (req: Request, res: Response) => {
-    const { collectionId } = AddCollectionSchema.parse(req.body);
+    const { collectionId, generateEmbedding } = AddCollectionSchema.parse(
+      req.body,
+    );
 
     // Check if collection already exists
     const existing = await collectionService.findByYelpId(collectionId);
@@ -39,7 +48,10 @@ export const collectionController = {
     }
 
     // Add and sync collection
-    const result = await collectionService.addAndSyncCollection(collectionId);
+    const result = await collectionService.addAndSyncCollection(
+      collectionId,
+      generateEmbedding,
+    );
 
     res.status(201).json(result);
   }),

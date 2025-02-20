@@ -25,6 +25,7 @@
   "homepage": "https://github.com/louismcohen/yelp-combinator-backend-ts#readme",
   "description": "",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
     "@huggingface/transformers": "^3.2.4",
     "@photostructure/tz-lookup": "^11.0.0",
     "axios": "^1.7.9",

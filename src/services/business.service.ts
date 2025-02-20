@@ -17,7 +17,11 @@ export const businessService = {
     }).lean();
   },
 
-  async upsertBusiness(businessData: PartialBusiness, updateYelpData = true) {
+  async upsertBusiness(
+    businessData: PartialBusiness,
+    generateEmbedding = false,
+    updateYelpData = true,
+  ) {
     const yelpDataResponse =
       updateYelpData &&
       (await yelpAPIService.getBusinessDetails(businessData.alias!));
@@ -39,7 +43,8 @@ export const businessService = {
       lastUpdated: new Date(),
     };
 
-    const embedding = await createEmbeddingForBusiness(business);
+    const embedding =
+      generateEmbedding && (await createEmbeddingForBusiness(business));
 
     const result = BusinessModel.findOneAndUpdate(
       { alias: businessData.alias },
@@ -53,7 +58,9 @@ export const businessService = {
         setDefaultsOnInsert: true,
       },
     );
-    console.log(`Upserted business ${businessData.alias}`);
+    console.log(
+      `Upserted business ${businessData.alias}. Embeddings generated: ${generateEmbedding}`,
+    );
     return result;
   },
 
@@ -93,5 +100,28 @@ export const businessService = {
     );
 
     return BusinessModel.bulkWrite(operations);
+  },
+
+  async getUniqueCategories() {
+    const uniqueCategories = await BusinessModel.aggregate([
+      {
+        $unwind: '$categories', // Unwind the 'categories' array to process each item individually
+      },
+      {
+        $group: {
+          _id: '$categories.alias', // Group by 'alias' to get unique values
+          title: { $first: '$categories.title' }, // Optionally include the title for each alias
+        },
+      },
+      {
+        $project: {
+          alias: '$_id', // Rename '_id' to 'alias'
+          _id: 0, // Exclude the default '_id' field
+          title: 1,
+        },
+      },
+    ]);
+
+    return uniqueCategories;
   },
 };
