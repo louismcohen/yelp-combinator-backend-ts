@@ -3,7 +3,7 @@ import { CollectionModel } from '../models/Collection';
 import { scraperService } from './scraper.service';
 import { businessService } from './business.service';
 import { createError } from '../utils/asyncHandler';
-import type { Collection } from '../types/schemas';
+import type { Business, Collection } from '../types/schemas';
 
 export const collectionService = {
   async checkForUpdates(collectionIds?: string[]) {
@@ -72,17 +72,28 @@ export const collectionService = {
 
     const scrapedCollection = scrapeResult.data;
 
+    let businessesUpdated = 0;
+    const updatedBusinesses: Business[] = [];
+
     // If there are items, process them first
     if (scrapedCollection.items && scrapedCollection.items.length > 0) {
       const businessPromises = scrapedCollection.items.map(async (business) => {
         try {
-          return await businessService.upsertBusiness(
-            {
-              ...business,
-              collectionId: scrapedCollection.yelpCollectionId,
-            },
-            generateEmbeddings,
-          );
+          const { business: upsertedBusiness, updated } =
+            await businessService.upsertBusiness(
+              {
+                ...business,
+                collectionId: scrapedCollection.yelpCollectionId,
+              },
+              generateEmbeddings,
+            );
+
+          if (updated && upsertedBusiness) {
+            updatedBusinesses.push(upsertedBusiness);
+            businessesUpdated++;
+          }
+
+          return upsertedBusiness;
         } catch (error) {
           console.error(`Failed to upsert business ${business.alias}:`, error);
           return null;
@@ -109,6 +120,8 @@ export const collectionService = {
       return {
         collection,
         businessesProcessed: businesses.length,
+        businessesUpdated,
+        updatedBusinesses,
         totalItems: scrapedCollection.itemCount,
       };
     }
@@ -126,6 +139,7 @@ export const collectionService = {
     return {
       collection,
       businessesProcessed: 0,
+      businessesUpdated,
       totalItems: scrapedCollection.itemCount,
     };
   },
@@ -226,7 +240,7 @@ export const collectionService = {
           );
 
           console.log(
-            `Inserted business ${index + 1} of ${businessesResult.data.length}: ${upserted.alias}. Embeddings generated: ${generateEmbedding}`,
+            `Inserted business ${index + 1} of ${businessesResult.data.length}: ${upserted.business.alias}. Embeddings generated: ${generateEmbedding}`,
           );
 
           return upserted;
@@ -237,19 +251,19 @@ export const collectionService = {
       },
     );
 
-    const businesses = (await Promise.all(businessPromises)).filter(
-      (b): b is NonNullable<typeof b> => b !== null,
-    );
+    const businessesPromisesResults = (
+      await Promise.all(businessPromises)
+    ).filter((b): b is NonNullable<typeof b> => b !== null);
 
     // Create collection with business references
     const collection = await CollectionModel.create({
       ...scrapeResult.data,
-      businesses: businesses.map((b) => b._id),
+      businesses: businessesPromisesResults.map((r) => r.business._id),
     });
 
     return {
       collection,
-      businessesProcessed: businesses.length,
+      businessesProcessed: businessesPromisesResults.length,
       totalItems: scrapeResult.data.itemCount,
     };
   },

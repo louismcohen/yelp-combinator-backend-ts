@@ -3,12 +3,30 @@ import { yelpAPIService } from './yelpAPI.service';
 import type { Business } from '../types/schemas';
 import { createEmbeddingForBusiness } from './embedding.service';
 import { embeddingLimiter } from '../utils/rateLimiter';
+import { isEqual, omit } from 'lodash';
+import diff from 'deep-diff';
+import { BusinessSchema } from '../types/schemas';
 
 type PartialBusiness = Partial<Business> & Pick<Business, 'alias'>;
 
+const YelpDataSchema = BusinessSchema.shape.yelpData;
+
+const extractYelpData = (business: PartialBusiness) => {
+  const result = YelpDataSchema.parse(business.yelpData);
+  return result;
+};
+
 export const businessService = {
   async getAll() {
-    return BusinessModel.find().select('-yelpData.hours').lean();
+    return await BusinessModel.find().select('-yelpData.hours').lean();
+  },
+
+  async getById(id: string) {
+    return await BusinessModel.findById(id).lean();
+  },
+
+  async getByIds(idArray: string[]) {
+    return await BusinessModel.find({ _id: { $in: idArray } }).lean();
   },
 
   async getUpdates(lastSync: Date) {
@@ -21,7 +39,11 @@ export const businessService = {
     businessData: PartialBusiness,
     generateEmbedding = false,
     updateYelpData = true,
-  ) {
+  ): Promise<{ business: Business; updated: boolean }> {
+    const existingBusiness = await BusinessModel.findOne({
+      alias: businessData.alias,
+    }).lean();
+
     const yelpDataResponse =
       updateYelpData &&
       (await yelpAPIService.getBusinessDetails(businessData.alias!));
@@ -43,10 +65,36 @@ export const businessService = {
       lastUpdated: new Date(),
     };
 
+    const existingBusinessToCompare = existingBusiness && {
+      note: existingBusiness.note,
+      yelpData: existingBusiness.yelpData,
+    };
+
+    const businessToCompare = business && {
+      note: business.note,
+      yelpData: omit(extractYelpData(business), ['photos']),
+    };
+
+    if (
+      existingBusiness &&
+      isEqual(existingBusinessToCompare, businessToCompare)
+    ) {
+      console.log(`${business.alias} has no updates`);
+      return { business: existingBusiness, updated: false };
+    }
+
+    console.log({
+      existing: existingBusinessToCompare,
+      new: businessToCompare,
+      diff: diff(existingBusinessToCompare, businessToCompare),
+    });
+
+    console.log(`${business.alias} has updates`);
+
     const embedding =
       generateEmbedding && (await createEmbeddingForBusiness(business));
 
-    const result = BusinessModel.findOneAndUpdate(
+    const result = await BusinessModel.findOneAndUpdate(
       { alias: businessData.alias },
       {
         ...business,
@@ -58,10 +106,8 @@ export const businessService = {
         setDefaultsOnInsert: true,
       },
     );
-    // console.log(
-    //   `Upserted business ${businessData.alias}. Embeddings generated: ${generateEmbedding}`,
-    // );
-    return result;
+
+    return { business: result, updated: true };
   },
 
   async bulkUpsertBusinesses(businesses: Partial<Business>[]) {

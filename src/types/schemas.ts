@@ -17,11 +17,14 @@ export const BusinessSchema = z.object({
   yelpData: z
     .object({
       name: z.string(),
-      image_url: z.string().url(),
+      image_url: z.string().url().optional(),
       is_claimed: z.boolean(),
-      is_closed: z.boolean(),
-      rating: z.number(),
-      review_count: z.number(),
+      is_closed: z.boolean().optional(),
+      rating: z.number().optional(),
+      review_count: z.number().optional(),
+      price: z.string().optional(),
+      phone: z.string().optional(),
+      display_phone: z.string().optional(),
       coordinates: z.object({
         latitude: z.number(),
         longitude: z.number(),
@@ -31,6 +34,7 @@ export const BusinessSchema = z.object({
         city: z.string(),
         state: z.string(),
         zip_code: z.string(),
+        display_address: z.array(z.string()),
         timezone: z.string().optional(),
       }),
       categories: z.array(
@@ -48,6 +52,7 @@ export const BusinessSchema = z.object({
                 start: z.string(),
                 end: z.string(),
                 day: z.number(),
+                is_overnight: z.boolean(),
               }),
             ),
           }),

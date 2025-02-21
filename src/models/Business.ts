@@ -36,8 +36,13 @@ const businessSchema = new mongoose.Schema(
     yelpData: {
       name: String,
       image_url: String,
+      is_claimed: Boolean,
+      is_closed: Boolean,
       rating: Number,
       review_count: Number,
+      price: String,
+      phone: String,
+      display_phone: String,
       coordinates: {
         latitude: Number,
         longitude: Number,
@@ -49,6 +54,7 @@ const businessSchema = new mongoose.Schema(
         state: String,
         zip_code: String,
         timezone: String,
+        display_address: [String],
         _id: false,
       },
       categories: [
@@ -65,6 +71,7 @@ const businessSchema = new mongoose.Schema(
               start: String,
               end: String,
               day: Number,
+              is_overnight: Boolean,
               _id: false,
             },
           ],
