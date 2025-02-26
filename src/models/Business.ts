@@ -30,8 +30,6 @@ const businessSchema = new mongoose.Schema(
         },
         message: 'Embedding must have exactly 384 dimensions',
       },
-      index: true,
-      sparse: true,
     },
     yelpData: {
       name: String,
