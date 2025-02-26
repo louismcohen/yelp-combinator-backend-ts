@@ -97,11 +97,11 @@ openapiToPostman.convert(
 );
 
 // Routes
-app.use('/api/businesses', businessRoutes);
-app.use('/api/collections', collectionRoutes);
-app.use('/api/embeddings', embeddingRoutes);
-app.use('/api/semantic', semanticRoutes);
-app.use('/api/search', searchRoutes);
+app.use('/businesses', businessRoutes);
+app.use('/collections', collectionRoutes);
+app.use('/embeddings', embeddingRoutes);
+app.use('/semantic', semanticRoutes);
+app.use('/search', searchRoutes);
 
 // Error handling
 app.use(errorHandler);
