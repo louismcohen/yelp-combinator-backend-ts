@@ -14,6 +14,7 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string(),
   POSTMAN_API_KEY: z.string(),
   POSTMAN_COLLECTION_UID: z.string(),
+  MONGODB_OLD_URI: z.string(),
 });
 
 export const env = envSchema.parse(process.env);
