@@ -186,7 +186,7 @@ router.get('/updates', businessController.getUpdates);
  *                 message:
  *                   type: string
  */
-router.patch('/:id/visited', businessController.updateVisited);
+router.patch('/:alias/visited', businessController.updateVisited);
 
 /**
  * @openapi

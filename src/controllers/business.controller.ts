@@ -27,8 +27,8 @@ export const businessController = {
   updateVisited: asyncHandler(async (req: Request, res: Response) => {
     const { visited } = VisitedUpdateSchema.parse(req.body);
 
-    const business = await BusinessModel.findByIdAndUpdate(
-      req.params.id,
+    const business = await BusinessModel.findOneAndUpdate(
+      { alias: req.params.alias },
       { visited },
       { new: true }, // Return updated document
     );

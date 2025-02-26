@@ -82,7 +82,7 @@ const updatePostmanCollection = async (postmanCollection: object) => {
 
 // Convert OpenAPI (Swagger) JSON to Postman Collection
 openapiToPostman.convert(
-  { type: 'string', data: JSON.stringify(swaggerDocs) },
+  { type: 'json', data: JSON.stringify(swaggerDocs) },
   {},
   async (err: unknown, conversionResult: ConvertResult) => {
     if (!conversionResult.result) {
