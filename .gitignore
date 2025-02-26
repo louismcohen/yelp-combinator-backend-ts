@@ -132,3 +132,4 @@ dist
 # Model cache
 cache/models/*
 !cache/models/.gitkeep
+.aider*

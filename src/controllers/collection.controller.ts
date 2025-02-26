@@ -6,6 +6,7 @@ import { asyncHandler, createError } from '../utils/asyncHandler';
 const CollectionIdsSchema = z.object({
   collectionIds: z.array(z.string()).optional(),
   generateEmbeddings: z.boolean().optional(),
+  updateYelpData: z.boolean().optional(),
 });
 
 const AddCollectionSchema = z.object({
@@ -57,12 +58,13 @@ export const collectionController = {
   }),
 
   checkAndSyncUpdates: asyncHandler(async (req: Request, res: Response) => {
-    const { collectionIds, generateEmbeddings } = CollectionIdsSchema.parse(
-      req.body,
-    );
+    const { collectionIds, generateEmbeddings, updateYelpData } =
+      CollectionIdsSchema.parse(req.body);
+
     const results = await collectionService.checkAndSyncUpdates(
       collectionIds,
       generateEmbeddings,
+      updateYelpData,
     );
     res.json(results);
   }),

@@ -68,9 +68,60 @@ router.post('/check-updates', collectionController.checkUpdates);
  *                   type: string
  *               generateEmbeddings:
  *                 type: boolean
+ *               updateYelpData:
+ *                 type: boolean
  *     responses:
  *       200:
  *         description: Sync results for updated collections
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   collectionId:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ *                   collection:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       yelpCollectionId:
+ *                         type: string
+ *                       name:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       lastUpdated:
+ *                         type: string
+ *                       businesses:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                   businessesProcessed:
+ *                     type: integer
+ *                   businessesUpdated:
+ *                     type: integer
+ *                   updatedBusinesses:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         _id:
+ *                           type: string
+ *                         alias:
+ *                           type: string
+ *                         name:
+ *                           type: string
+ *                         lastUpdated:
+ *                           type: string
+ *                   totalItems:
+ *                     type: integer
+ *                   error:
+ *                     type: string
  */
 router.post(
   '/check-and-sync-updates',

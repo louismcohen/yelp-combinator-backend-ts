@@ -4,6 +4,7 @@ import { scraperService } from './scraper.service';
 import { businessService } from './business.service';
 import { createError } from '../utils/asyncHandler';
 import type { Business, Collection } from '../types/schemas';
+import { BusinessModel } from '../models/Business';
 
 export const collectionService = {
   async checkForUpdates(collectionIds?: string[]) {
@@ -59,7 +60,11 @@ export const collectionService = {
     return updateResults;
   },
 
-  async syncCollection(collectionId: string, generateEmbeddings = false) {
+  async syncCollection(
+    collectionId: string,
+    generateEmbeddings?: boolean,
+    updateYelpData?: boolean,
+  ) {
     const scrapeResult =
       await scraperService.scrapeFullCollection(collectionId);
 
@@ -86,6 +91,7 @@ export const collectionService = {
                 collectionId: scrapedCollection.yelpCollectionId,
               },
               generateEmbeddings,
+              updateYelpData,
             );
 
           if (updated && upsertedBusiness) {
@@ -104,12 +110,22 @@ export const collectionService = {
         (b): b is NonNullable<typeof b> => b !== null,
       );
 
+      // Delete businesses that are no longer in the scraped collection
+      const businessIdsInCollection = businesses.map((b) => b._id);
+      const deletedBusinesses = await BusinessModel.deleteMany({
+        _id: { $nin: businessIdsInCollection },
+        collectionId: scrapedCollection.yelpCollectionId,
+      });
+
+      if (deletedBusinesses.deletedCount > 0)
+        console.log(`Deleted ${deletedBusinesses.deletedCount} businesses`);
+
       // Update or create collection with business references
       const collection = await CollectionModel.findOneAndUpdate(
         { yelpCollectionId: collectionId },
         {
           ...scrapedCollection,
-          businesses: businesses.map((b) => b._id),
+          businesses: businessIdsInCollection,
         },
         {
           new: true,
@@ -144,7 +160,11 @@ export const collectionService = {
     };
   },
 
-  async syncCollections(collectionIds?: string[], generateEmbeddings = false) {
+  async syncCollections(
+    collectionIds?: string[],
+    generateEmbeddings?: boolean,
+    updateYelpData?: boolean,
+  ) {
     const results = [];
 
     let yelpCollectionIds: string[] = [];
@@ -159,6 +179,7 @@ export const collectionService = {
         const result = await this.syncCollection(
           collectionId,
           generateEmbeddings,
+          updateYelpData,
         );
         results.push({
           collectionId,
@@ -197,7 +218,11 @@ export const collectionService = {
     return CollectionModel.findOne({ yelpCollectionId });
   },
 
-  async addAndSyncCollection(collectionId: string, generateEmbedding = false) {
+  async addAndSyncCollection(
+    collectionId: string,
+    generateEmbedding = false,
+    updateYelpData = true,
+  ) {
     // First scrape collection metadata
     const scrapeResult = await scraperService.scrapeCollection(collectionId);
     if (!scrapeResult.success) {
@@ -237,6 +262,7 @@ export const collectionService = {
               collectionId: scrapeResult.data.yelpCollectionId,
             },
             generateEmbedding,
+            updateYelpData,
           );
 
           console.log(
@@ -270,7 +296,8 @@ export const collectionService = {
 
   async checkAndSyncUpdates(
     collectionIds?: string[],
-    generateEmbeddings = false,
+    generateEmbeddings?: boolean,
+    updateYelpData?: boolean,
   ) {
     const updateResults = await this.checkForUpdates(collectionIds);
     const collectionsToUpdate = updateResults
@@ -281,6 +308,7 @@ export const collectionService = {
       const syncResults = await this.syncCollections(
         collectionsToUpdate,
         generateEmbeddings,
+        updateYelpData,
       );
       return syncResults;
     }

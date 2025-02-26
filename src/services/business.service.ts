@@ -37,8 +37,8 @@ export const businessService = {
 
   async upsertBusiness(
     businessData: PartialBusiness,
-    generateEmbedding = false,
-    updateYelpData = false,
+    generateEmbedding?: boolean,
+    updateYelpData?: boolean,
   ): Promise<{ business: Business; updated: boolean }> {
     const existingBusiness = await BusinessModel.findOne({
       alias: businessData.alias,
@@ -47,7 +47,7 @@ export const businessService = {
     // If no existing business, always fetch Yelp data
     // If existing business, only fetch if updateYelpData is true
     const shouldFetchYelpData = !existingBusiness || updateYelpData;
-    
+
     const yelpDataResponse = shouldFetchYelpData
       ? await yelpAPIService.getBusinessDetails(businessData.alias!)
       : null;
@@ -79,8 +79,8 @@ export const businessService = {
     const businessToCompare = business && {
       note: business.note,
       // Only include yelpData in comparison if we're updating it
-      ...(updateYelpData && { 
-        yelpData: omit(extractYelpData(business), ['photos']) 
+      ...(updateYelpData && {
+        yelpData: omit(extractYelpData(business), ['photos']),
       }),
     };
 
