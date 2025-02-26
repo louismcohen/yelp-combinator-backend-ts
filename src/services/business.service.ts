@@ -44,9 +44,13 @@ export const businessService = {
       alias: businessData.alias,
     }).lean();
 
-    const yelpDataResponse =
-      (updateYelpData || !existingBusiness) &&
-      (await yelpAPIService.getBusinessDetails(businessData.alias!));
+    // If no existing business, always fetch Yelp data
+    // If existing business, only fetch if updateYelpData is true
+    const shouldFetchYelpData = !existingBusiness || updateYelpData;
+    
+    const yelpDataResponse = shouldFetchYelpData
+      ? await yelpAPIService.getBusinessDetails(businessData.alias!)
+      : null;
 
     const yelpData: Business['yelpData'] = yelpDataResponse
       ? yelpDataResponse.data
@@ -65,14 +69,19 @@ export const businessService = {
       lastUpdated: new Date(),
     };
 
+    // For comparison, only include fields we want to check
     const existingBusinessToCompare = existingBusiness && {
       note: existingBusiness.note,
-      yelpData: existingBusiness.yelpData,
+      // Only include yelpData in comparison if we're updating it
+      ...(updateYelpData && { yelpData: existingBusiness.yelpData }),
     };
 
     const businessToCompare = business && {
       note: business.note,
-      yelpData: updateYelpData && omit(extractYelpData(business), ['photos']),
+      // Only include yelpData in comparison if we're updating it
+      ...(updateYelpData && { 
+        yelpData: omit(extractYelpData(business), ['photos']) 
+      }),
     };
 
     console.log(existingBusinessToCompare, businessToCompare);
