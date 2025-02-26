@@ -38,14 +38,14 @@ export const businessService = {
   async upsertBusiness(
     businessData: PartialBusiness,
     generateEmbedding = false,
-    updateYelpData = true,
+    updateYelpData = false,
   ): Promise<{ business: Business; updated: boolean }> {
     const existingBusiness = await BusinessModel.findOne({
       alias: businessData.alias,
     }).lean();
 
     const yelpDataResponse =
-      updateYelpData &&
+      (updateYelpData || !existingBusiness) &&
       (await yelpAPIService.getBusinessDetails(businessData.alias!));
 
     const yelpData: Business['yelpData'] = yelpDataResponse
@@ -58,8 +58,8 @@ export const businessService = {
       geoPoint: {
         type: 'Point' as const,
         coordinates: [
-          yelpData?.coordinates.longitude ?? 0,
-          yelpData?.coordinates.latitude ?? 0,
+          yelpData?.coordinates?.longitude ?? 0,
+          yelpData?.coordinates?.latitude ?? 0,
         ],
       },
       lastUpdated: new Date(),
@@ -72,8 +72,10 @@ export const businessService = {
 
     const businessToCompare = business && {
       note: business.note,
-      yelpData: omit(extractYelpData(business), ['photos']),
+      yelpData: updateYelpData && omit(extractYelpData(business), ['photos']),
     };
+
+    console.log(existingBusinessToCompare, businessToCompare);
 
     if (
       existingBusiness &&
