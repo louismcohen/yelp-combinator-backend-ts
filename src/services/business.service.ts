@@ -18,7 +18,10 @@ const extractYelpData = (business: PartialBusiness) => {
 
 export const businessService = {
   async getAll() {
-    return await BusinessModel.find().select('-yelpData.hours').lean();
+    console.log('Getting all businesses');
+    const result = await BusinessModel.find().select('-yelpData.hours').lean();
+    console.log(`Found ${result.length} businesses`);
+    return result;
   },
 
   async getById(id: string) {
@@ -46,7 +49,10 @@ export const businessService = {
 
     // If no existing business, always fetch Yelp data
     // If existing business, only fetch if updateYelpData is true
-    const shouldFetchYelpData = !existingBusiness || updateYelpData;
+    const shouldFetchYelpData =
+      !existingBusiness ||
+      Object.keys(existingBusiness.yelpData ?? {}).length === 0 ||
+      updateYelpData;
 
     const yelpDataResponse = shouldFetchYelpData
       ? await yelpAPIService.getBusinessDetails(businessData.alias!)
@@ -73,13 +79,13 @@ export const businessService = {
     const existingBusinessToCompare = existingBusiness && {
       note: existingBusiness.note,
       // Only include yelpData in comparison if we're updating it
-      ...(updateYelpData && { yelpData: existingBusiness.yelpData }),
+      ...(shouldFetchYelpData && { yelpData: existingBusiness.yelpData }),
     };
 
     const businessToCompare = business && {
       note: business.note,
       // Only include yelpData in comparison if we're updating it
-      ...(updateYelpData && {
+      ...(shouldFetchYelpData && {
         yelpData: omit(extractYelpData(business), ['photos']),
       }),
     };
@@ -109,6 +115,7 @@ export const businessService = {
       { alias: businessData.alias },
       {
         ...business,
+        yelpData: shouldFetchYelpData ? yelpData : existingBusiness?.yelpData,
         embedding,
       },
       {
