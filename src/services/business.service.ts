@@ -19,7 +19,7 @@ const extractYelpData = (business: PartialBusiness) => {
 export const businessService = {
   async getAll() {
     console.log('Getting all businesses');
-    const result = await BusinessModel.find().select('-yelpData.hours').lean();
+    const result = await BusinessModel.find().lean();
     console.log(`Found ${result.length} businesses`);
     return result;
   },
