@@ -49,7 +49,7 @@ router.get('/updates', businessController.getUpdates);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/json
  *           schema:
  *             type: object
  *             properties:
@@ -69,7 +69,7 @@ router.patch('/:id/visited', businessController.updateVisited);
 
 /**
  * @openapi
- * /api/businesses/{id}/visited:
+ * /api/businesses/updateEmbeddings:
  *   patch:
  *     tags: [Businesses]
  *     summary: Update embeddings for some or all businesses
