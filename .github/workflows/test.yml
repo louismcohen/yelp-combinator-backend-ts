@@ -1,0 +1,38 @@
+name: Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Lint
+      run: npm run lint
+
+    - name: Run tests
+      run: npm test
+      env:
+        NODE_ENV: test
+        MONGODB_URI: mongodb://localhost:27017/yelp-combinator-test
+        MONGODB_STD_URI: mongodb://localhost:27017/yelp-combinator-test
+        YELP_API_KEY: ${{ secrets.YELP_API_KEY || 'test-yelp-api-key' }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'test-anthropic-api-key' }}
+        POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY || 'test-postman-api-key' }}
+        POSTMAN_COLLECTION_UID: ${{ secrets.POSTMAN_COLLECTION_UID || 'test-collection-uid' }}
+        MONGODB_OLD_URI: mongodb://localhost:27017/yelp-combinator-old-test
