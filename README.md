@@ -1,6 +1,8 @@
 # Yelp Combinator Backend API
 
-A TypeScript backend service that allows users to create collections of businesses from Yelp, add semantic search capabilities, and manage their favorite places. It features natural language search using LLMs to interpret user queries. This is paired with the `yelp-combinator-frontend` project.
+A TypeScript backend service that allows users to create collections of businesses from Yelp, add semantic search capabilities, and manage their favorite places. It features natural language search using LLMs to interpret user queries. This backend is designed to power the [Yelp Combinator Frontend](https://github.com/louismcohen/yelp-combinator-frontend) application.
+
+**[Try the live application here](https://yelp-combinator.louiscohen.me)**
 
 ## Features
 
@@ -79,6 +81,18 @@ The API provides endpoints for:
 ## API Documentation
 
 API documentation is available at `/api-docs` when the server is running.
+
+## Frontend Application
+
+This backend works with a dedicated React frontend application:
+
+- **Repository**: [yelp-combinator-frontend](https://github.com/louismcohen/yelp-combinator-frontend)
+- **Features**: 
+  - User-friendly interface for browsing and managing collections
+  - Search functionality with natural language capabilities
+  - Responsive design for mobile and desktop use
+  - Integration with map services for business locations
+- **Tech Stack**: React, TypeScript, Tailwind CSS
 
 ## License
 
