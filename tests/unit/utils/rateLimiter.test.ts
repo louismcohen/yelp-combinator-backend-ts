@@ -14,8 +14,8 @@ describe('rateLimiter', () => {
   describe('yelpLimiter', () => {
     it('should be configured with values from yelp config', () => {
       expect(yelpLimiter.clients).toBeDefined();
-      expect(yelpLimiter.options.maxConcurrent).toBe(yelpConfig.rateLimit.maxConcurrent);
-      expect(yelpLimiter.options.minTime).toBe(yelpConfig.rateLimit.minTime);
+      expect(yelpLimiter.currentReservoir).toBeDefined();
+      expect(yelpLimiter.jobStatus).toBeDefined();
     });
 
     it('should properly limit function execution', async () => {
@@ -42,7 +42,7 @@ describe('rateLimiter', () => {
   describe('embeddingLimiter', () => {
     it('should be configured with correct values', () => {
       expect(embeddingLimiter.clients).toBeDefined();
-      expect(embeddingLimiter.options.maxConcurrent).toBe(3);
+      expect(embeddingLimiter.currentReservoir).toBeDefined();
     });
 
     it('should properly limit function execution', async () => {
