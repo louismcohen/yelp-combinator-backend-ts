@@ -10,9 +10,6 @@ export const downloadModels = async () => {
     await pipeline(
       'feature-extraction',
       'sentence-transformers/all-MiniLM-L6-v2',
-      {
-        revision: 'main',
-      },
     );
     console.log('Models downloaded successfully!');
   } catch (error) {
