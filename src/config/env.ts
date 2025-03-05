@@ -12,6 +12,7 @@ const envSchema = z.object({
   MONGODB_STD_URI: z.string(),
   YELP_API_KEY: z.string(),
   ANTHROPIC_API_KEY: z.string(),
+  ANTHROPIC_MODEL: z.string(),
   POSTMAN_API_KEY: z.string(),
   POSTMAN_COLLECTION_UID: z.string(),
   MONGODB_OLD_URI: z.string(),
