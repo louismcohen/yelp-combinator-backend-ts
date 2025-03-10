@@ -14,7 +14,7 @@ export const downloadModels = async () => {
     console.log('Models downloaded successfully!');
   } catch (error) {
     console.error('Failed to download models:', error);
-    process.exit(1);
+    // process.exit(1);
   }
 };
 

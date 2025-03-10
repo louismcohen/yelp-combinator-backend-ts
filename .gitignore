@@ -133,3 +133,6 @@ dist
 cache/models/*
 !cache/models/.gitkeep
 .aider*
+
+# Mac stuff
+.DS_Store*
