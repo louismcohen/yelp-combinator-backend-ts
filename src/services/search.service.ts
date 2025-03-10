@@ -61,6 +61,8 @@ export const searchService = {
     Note about text vs. categories: "Restaurant" itself is not a category should never be entered as a category. For example "thai restaurant" should yield "thai" as a category, and the word "restaurant" can be discarded.
 
     For the categories field, match the query with the following categories: ${uniqueCategories.map((category) => category.alias).join(', ')}.
+
+    You need to infer what the user is asking for in the query by finding related categories, if possible. For example "coffee shops" in the query should yield a category with "coffee" in it.
     
     ${
       userLocation
