@@ -70,13 +70,13 @@ export const searchService = {
     IMPORTANT: Only set useProximity to true if the query explicitly mentions location relative to the user 
     AND user location is provided (e.g., "near me", "within 2 miles", "nearby", "close to me", etc.).
     If no user location is provided, ignore any proximity-based requests.
-    Return only a valid JSON object matching this schema.
+    Return only a valid JSON object matching this schema with no markdown formatting, just a pure JSON object.
   `;
 
     console.log(`Processing search query: ${query}`);
     console.log(`System prompt: ${systemPrompt}`);
 
-    const response = await anthropic.messages.create({
+    const response: Anthropic.Message = await anthropic.messages.create({
       model: env.ANTHROPIC_MODEL || 'claude-3-7-sonnet-20250219',
       max_tokens: 1024,
       temperature: 0,
