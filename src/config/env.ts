@@ -17,6 +17,15 @@ const envSchema = z.object({
   POSTMAN_COLLECTION_UID: z.string(),
   MONGODB_OLD_URI: z.string(),
   HF_TOKEN: z.string(),
+  YELP_GQL_COLLECTION_ITEMS_DOCUMENT_ID: z
+    .string()
+    .default(
+      'dc87c0c78c2d4cc684b360f27e502a44de226e69eb17b9383a99d612141617c3',
+    ),
+  YELP_SCRAPER_RENDERED_ITEMS_FALLBACK: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true'),
 });
 
 export const env = envSchema.parse(process.env);
