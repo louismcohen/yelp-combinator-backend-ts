@@ -4,7 +4,6 @@ import type { Business } from '../types/schemas';
 import { createEmbeddingForBusiness } from './embedding.service';
 import { embeddingLimiter } from '../utils/rateLimiter';
 import { isEqual, omit } from 'lodash';
-import diff from 'deep-diff';
 import { BusinessSchema } from '../types/schemas';
 
 type PartialBusiness = Partial<Business> & Pick<Business, 'alias'>;
@@ -14,6 +13,12 @@ const YelpDataSchema = BusinessSchema.shape.yelpData;
 const extractYelpData = (business: PartialBusiness) => {
   const result = YelpDataSchema.parse(business.yelpData);
   return result;
+};
+
+/** Normalize empty notes so '' and undefined compare equal. */
+const normalizeNote = (note?: string | null): string | undefined => {
+  const trimmed = note?.trim();
+  return trimmed ? trimmed : undefined;
 };
 
 export const businessService = {
@@ -64,6 +69,7 @@ export const businessService = {
 
     const business: PartialBusiness = {
       ...businessData,
+      note: normalizeNote(businessData.note),
       yelpData,
       geoPoint: {
         type: 'Point' as const,
@@ -77,12 +83,12 @@ export const businessService = {
 
     // For comparison, only include fields we want to check
     const existingBusinessToCompare = existingBusiness && {
-      note: existingBusiness.note,
+      note: normalizeNote(existingBusiness.note),
       // Only include yelpData in comparison if we're updating it
       ...(shouldFetchYelpData && { yelpData: existingBusiness.yelpData }),
     };
 
-    const businessToCompare = business && {
+    const businessToCompare = {
       note: business.note,
       // Only include yelpData in comparison if we're updating it
       ...(shouldFetchYelpData && {
@@ -90,23 +96,12 @@ export const businessService = {
       }),
     };
 
-    console.log(existingBusinessToCompare, businessToCompare);
-
     if (
       existingBusiness &&
       isEqual(existingBusinessToCompare, businessToCompare)
     ) {
-      console.log(`${business.alias} has no updates`);
       return { business: existingBusiness, updated: false };
     }
-
-    console.log({
-      existing: existingBusinessToCompare,
-      new: businessToCompare,
-      diff: diff(existingBusinessToCompare, businessToCompare),
-    });
-
-    console.log(`${business.alias} has updates`);
 
     const embedding =
       generateEmbedding && (await createEmbeddingForBusiness(business));

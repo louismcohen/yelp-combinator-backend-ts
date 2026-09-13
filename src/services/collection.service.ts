@@ -78,6 +78,7 @@ export const collectionService = {
     const scrapedCollection = scrapeResult.data;
 
     let businessesUpdated = 0;
+    let businessesFailed = 0;
     const updatedBusinesses: Business[] = [];
 
     // If there are items, process them first
@@ -101,6 +102,7 @@ export const collectionService = {
 
           return upsertedBusiness;
         } catch (error) {
+          businessesFailed++;
           console.error(`Failed to upsert business ${business.alias}:`, error);
           return null;
         }
@@ -108,6 +110,11 @@ export const collectionService = {
 
       const businesses = (await Promise.all(businessPromises)).filter(
         (b): b is NonNullable<typeof b> => b !== null,
+      );
+
+      const businessesSkipped = businesses.length - businessesUpdated;
+      console.log(
+        `Collection ${collectionId}: updated ${businessesUpdated} / skipped ${businessesSkipped} / failed ${businessesFailed} of ${scrapedCollection.items.length} businesses`,
       );
 
       // Delete businesses that are no longer in the scraped collection
@@ -253,33 +260,33 @@ export const collectionService = {
     );
 
     // Process and store businesses
-    const businessPromises = businessesResult.data.map(
-      async (business, index) => {
-        try {
-          const upserted = await businessService.upsertBusiness(
-            {
-              ...business,
-              collectionId: scrapeResult.data.yelpCollectionId,
-            },
-            generateEmbedding,
-            updateYelpData,
-          );
+    let businessesFailed = 0;
+    const businessPromises = businessesResult.data.map(async (business) => {
+      try {
+        const upserted = await businessService.upsertBusiness(
+          {
+            ...business,
+            collectionId: scrapeResult.data.yelpCollectionId,
+          },
+          generateEmbedding,
+          updateYelpData,
+        );
 
-          console.log(
-            `Inserted business ${index + 1} of ${businessesResult.data.length}: ${upserted.business.alias}. Embeddings generated: ${generateEmbedding}`,
-          );
-
-          return upserted;
-        } catch (error) {
-          console.error(`Failed to upsert business ${business.alias}:`, error);
-          return null;
-        }
-      },
-    );
+        return upserted;
+      } catch (error) {
+        businessesFailed++;
+        console.error(`Failed to upsert business ${business.alias}:`, error);
+        return null;
+      }
+    });
 
     const businessesPromisesResults = (
       await Promise.all(businessPromises)
     ).filter((b): b is NonNullable<typeof b> => b !== null);
+
+    console.log(
+      `Collection ${collectionId}: processed ${businessesPromisesResults.length} / failed ${businessesFailed} of ${businessesResult.data.length} businesses (embeddings=${generateEmbedding})`,
+    );
 
     // Create collection with business references
     const collection = await CollectionModel.create({
