@@ -45,7 +45,7 @@ interface GetCollectionItemsPageResponse {
   } | null;
 }
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 500;
 
 /**
  * Extract the gondola `collection` object for a given collection id from page HTML.
